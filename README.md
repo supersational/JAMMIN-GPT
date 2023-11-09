@@ -16,7 +16,7 @@ https://github.com/supersational/JAMMIN-GPT/blob/main/generate_midi.py#L15
 
 
 ### Screenshot
-![Screenshot of Demo](screenshots/client.png)
+![Screenshot of Demo](screenshots/final_screenshot.png)
 
 
 ### Add AbletonOSC as a control surface in Ableton
