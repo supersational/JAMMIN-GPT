@@ -1,8 +1,8 @@
 import os
+import re
 from copy import deepcopy
 
 from chatlib import get_completion
-import re
 from mido import MidiFile
 
 MODEL_NUM = 4
