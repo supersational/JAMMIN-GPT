@@ -1,4 +1,5 @@
 # JAMMIN-GPT
+[**Paper**](https://arxiv.org/pdf/2312.03479.pdf) | [**ISMIR Poster**](https://ismir2023program.ismir.net/lbd_356.html) 
 
 ### Requirements
 - abc2midi - https://abcmidi.sourceforge.io/
