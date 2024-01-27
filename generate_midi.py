@@ -1,8 +1,8 @@
 import os
+import re
 from copy import deepcopy
 
 from chatlib import get_completion
-import re
 from mido import MidiFile
 
 MODEL_NUM = 4
@@ -33,6 +33,16 @@ def extract_message(message):
 
 
 def make_midi(prompt, filename, DEBUG=False):
+    """Generate a MIDI file from a given prompt.
+
+    Args:
+        prompt (str): The musical prompt to generate MIDI for.
+        filename (str): The filename to save the MIDI file as.
+        DEBUG (bool): Flag to enable debugging output.
+
+    Returns:
+        None
+    """
     print("START MAKE MIDI", prompt, filename)
     if not DEBUG:
         print(">>>>> getting response")

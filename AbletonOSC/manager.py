@@ -1,16 +1,25 @@
-from ableton.v2.control_surface import ControlSurface
-
-from . import abletonosc
-
+# Standard library imports
 import importlib
-import traceback
 import logging
 import os
+
+# Third-party imports
+from ableton.v2.control_surface import ControlSurface
+
+# Local application/library specific imports
+from . import abletonosc
 
 logger = logging.getLogger("abletonosc")
 
 class Manager(ControlSurface):
+    """Manager class for AbletonOSC."""
+
     def __init__(self, c_instance):
+        """Initialize the Manager class.
+
+        Args:
+            c_instance: Instance of the ControlSurface class.
+        """
         ControlSurface.__init__(self, c_instance)
 
         self.log_level = "info"
@@ -38,6 +47,7 @@ class Manager(ControlSurface):
         logger.addHandler(self.live_osc_error_handler)
 
     def start_logging(self):
+        """Start logging."""
         module_path = os.path.dirname(os.path.realpath(__file__))
         log_dir = os.path.join(module_path, "logs")
         if not os.path.exists(log_dir):
@@ -50,6 +60,7 @@ class Manager(ControlSurface):
         logger.addHandler(self.log_file_handler)
 
     def init_api(self):
+        """Initialize the API."""
         def test_callback(params):
             self.show_message("Received OSC OK")
             self.osc_server.send("/live/test", ("ok",))
@@ -59,7 +70,8 @@ class Manager(ControlSurface):
             return (self.log_level,)
         def set_log_level_callback(params):
             log_level = params[0]
-            assert log_level in ("debug", "info", "warning", "error", "critical")
+            if log_level not in ("debug", "info", "warning", "error", "critical"):
+                raise ValueError(f"Invalid log level: {log_level}")
             self.log_level = log_level
             self.log_file_handler.setLevel(self.log_level.upper())
 
@@ -80,22 +92,23 @@ class Manager(ControlSurface):
             ]
 
     def clear_api(self):
+        """Clear the API."""
         self.osc_server.clear_handlers()
         for handler in self.handlers:
             handler.clear_api()
 
     def tick(self):
         """
-        Called once per 100ms "tick".
-        Live's embedded Python implementation does not appear to support threading,
-        and beachballs when a thread is started. Instead, this approach allows long-running
-        processes such as the OSC server to perform operations.
+        Called once per 100ms "tick". This method allows long-running
+        processes such as the OSC server to perform operations without
+        threading, which is not supported in Live's embedded Python.
         """
         logger.debug("Tick...")
         self.osc_server.process()
         self.schedule_message(1, self.tick)
 
     def reload_imports(self):
+        """Reload imports."""
         try:
             importlib.reload(abletonosc.application)
             importlib.reload(abletonosc.clip)
@@ -117,9 +130,8 @@ class Manager(ControlSurface):
         logger.info("Reloaded code")
 
     def disconnect(self):
+        """Disconnect the OSC server."""
         self.show_message("Disconnecting...")
         logger.info("Disconnecting...")
         self.osc_server.shutdown()
         super().disconnect()
-
-
