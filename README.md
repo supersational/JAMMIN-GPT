@@ -1,6 +1,10 @@
 # JAMMIN-GPT
 [**Paper**](https://arxiv.org/pdf/2312.03479.pdf) | [**ISMIR Poster**](https://ismir2023program.ismir.net/lbd_356.html) 
 
+![ISMIR Title page](screenshots/title.png)
+
+![Diagram of operation](screenshots/diagram.png)
+
 ### Requirements
 - abc2midi - https://abcmidi.sourceforge.io/
     - `brew install abc2midi`
