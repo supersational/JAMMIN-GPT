@@ -86,14 +86,12 @@ COST_PER_TOKEN = {
 }
 
 
-
 def calculate_cost(usage, model):
     cost = 0.0
     for key, value in usage.items():
         if key in COST_PER_TOKEN[model]:
             cost += value * COST_PER_TOKEN[model][key]
     return cost
-
 
 
 SYSTEM = """You are a helpful AI assistant. Respond to the user's requests exactly as they are given."""  # noqa: E501
@@ -117,9 +115,9 @@ def get_completion(
     presence_penalty=0.0,
 ):
     if model_num == 3:
-        model = "gpt-3.5-turbo"
+        model = "gpt-4o-mini" # effectively the new gpt-3.5
     elif model_num == 4:
-        model = "gpt-4o-mini"
+        model = "gpt-4o"
     else:
         raise Exception("Invalid model_num")
     print("using model", model)
