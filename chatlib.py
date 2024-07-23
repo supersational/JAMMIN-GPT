@@ -6,46 +6,47 @@ from openai import OpenAI
 # codex models are discontinued
 
 COST_PER_TOKEN = {
-    "gpt-4": {"prompt_tokens": 0.03 / 1000, "completion_tokens": 0.06 / 1000},
-    "gpt-4-0613": {"prompt_tokens": 0.03 / 1000, "completion_tokens": 0.06 / 1000},
-    "gpt-4-32k": {"prompt_tokens": 0.06 / 1000, "completion_tokens": 0.12 / 1000},
-    "gpt-4-32k-0613": {"prompt_tokens": 0.06 / 1000, "completion_tokens": 0.12 / 1000},
+    "gpt-4": {"prompt_tokens": 30 / 1_000_000, "completion_tokens": 60 / 1_000_000},
+    "gpt-4-0613": {"prompt_tokens": 30 / 1_000_000, "completion_tokens": 60 / 1_000_000},
+    "gpt-4-32k": {"prompt_tokens": 60 / 1_000_000, "completion_tokens": 120 / 1_000_000},
+    "gpt-4-32k-0613": {"prompt_tokens": 60 / 1_000_000, "completion_tokens": 120 / 1_000_000},
     "gpt-3.5-turbo": {
-        "prompt_tokens": 0.0015 / 1000,
-        "completion_tokens": 0.002 / 1000,
+        "prompt_tokens": 1.5 / 1_000_000,
+        "completion_tokens": 2 / 1_000_000,
     },
     "gpt-3.5-turbo-0613": {
-        "prompt_tokens": 0.0015 / 1000,
-        "completion_tokens": 0.002 / 1000,
+        "prompt_tokens": 1.5 / 1_000_000,
+        "completion_tokens": 2 / 1_000_000,
     },
     "gpt-3.5-turbo-16k": {
-        "prompt_tokens": 0.003 / 1000,
-        "completion_tokens": 0.004 / 1000,
+        "prompt_tokens": 3 / 1_000_000,
+        "completion_tokens": 4 / 1_000_000,
     },
     "gpt-3.5-turbo-16k-0613": {
-        "prompt_tokens": 0.003 / 1000,
-        "completion_tokens": 0.004 / 1000,
+        "prompt_tokens": 3 / 1_000_000,
+        "completion_tokens": 4 / 1_000_000,
     },
     "gpt-4-1106-preview": {
-        "prompt_tokens": 0.01 / 1000,
-        "completion_tokens": 0.03 / 1000,
+        "prompt_tokens": 10 / 1_000_000,
+        "completion_tokens": 30 / 1_000_000,
     },
     "gpt-4-1106-vision-preview": {
-        "prompt_tokens": 0.01 / 1000,
-        "completion_tokens": 0.03 / 1000,
+        "prompt_tokens": 10 / 1_000_000,
+        "completion_tokens": 30 / 1_000_000,
     },
     "gpt-3.5-turbo-1106": { # 16k
-        "prompt_tokens": 0.0010 / 1000,
-        "completion_tokens": 0.0020 / 1000,
+        "prompt_tokens": 1 / 1_000_000,
+        "completion_tokens": 2 / 1_000_000,
     },
     "gpt-3.5-turbo-instruct": { # 4k context window
-        "prompt_tokens": 0.0015 / 1000,
-        "completion_tokens": 0.0020 / 1000,
+        "prompt_tokens": 1.5 / 1_000_000,
+        "completion_tokens": 2 / 1_000_000,
     },
-    # "text-davinci-003": {"total_tokens": 0.02 / 1000},
-    # "text-davinci-002": {"total_tokens": 0.02 / 1000},
-    # "code-davinci-002": {"total_tokens": 0.03 / 1000},
+    # "text-davinci-003": {"total_tokens": 20 / 1_000_000},
+    # "text-davinci-002": {"total_tokens": 20 / 1_000_000},
+    # "code-davinci-002": {"total_tokens": 30 / 1_000_000},
 }
+
 
 
 def calculate_cost(usage, model):
