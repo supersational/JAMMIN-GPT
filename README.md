@@ -26,3 +26,23 @@ https://github.com/supersational/JAMMIN-GPT/blob/main/generate_midi.py#L15
 
 ### Add AbletonOSC as a control surface in Ableton
 ![Set as Control Surface](screenshots/client.png)
+
+### Run the python script
+
+In a seperate terminal window run:
+```bash
+python main.py
+```
+
+- You should see the output: `waiting for named MIDI clip to appear..`
+- Now create an empty MIDI clip in Ableton and rename it something like: "piano arp"
+  - Create MIDI clip shortcut: `cmd+shift+m`
+  - Rename MIDI clip shortcut: `cmd+r`
+- If the script works correctly the clip's name should change
+- The MIDI clip should now contain LLM-generated music, make some more!
+
+### Debugging
+
+- Make sure you have added AbletonOSC as a control surface in Ableton
+- Sometimes there is an orange colored message in the bottom status bar of Ableton
+- There are ways to debug remote scripts in Ableton and see print statements, guides can be found online
