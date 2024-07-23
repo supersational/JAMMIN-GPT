@@ -111,7 +111,7 @@ MESSAGES = [
 
 def get_completion(
     prompt,
-    model_num=3,
+    model_num=4,
     system=None,
     frequency_penalty=0.0,
     presence_penalty=0.0,
@@ -119,16 +119,17 @@ def get_completion(
     if model_num == 3:
         model = "gpt-3.5-turbo"
     elif model_num == 4:
-        # model = "gpt-4"
-        model = "gpt-4-1106-preview"
+        model = "gpt-4o-mini"
     else:
         raise Exception("Invalid model_num")
     print("using model", model)
     if system is None:
         messages = [x for x in MESSAGES]
     else:
-        messages = [{"role": "system", "content": system}, 
-                    {"role": "user", "content": prompt}]
+        messages = [
+            {"role": "system", "content": system},
+            {"role": "user", "content": prompt},
+        ]
 
     client = OpenAI()
 
