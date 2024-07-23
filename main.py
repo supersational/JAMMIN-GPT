@@ -1,3 +1,4 @@
+# Standard library imports
 import json
 import os
 import pickle
@@ -8,13 +9,13 @@ import traceback
 import itertools
 from collections import defaultdict
 
+# Third-party imports
 from mido import MidiFile
 
 # Local application/library specific imports
 import fluidsynth_lib
 from client import AbletonOSCClient
 from generate_midi import make_midi, modify_midi, midifile_to_notes
-
 
 # Constants
 IP = "127.0.0.1"
@@ -33,23 +34,35 @@ with open(MIDI_MAP_PATH, "r") as f:
 # Initialize Ableton OSC client
 client = AbletonOSCClient(IP, PORT)
 
-
 try:
     assert client.query("/live/test")[0] == "ok"
 except:
     print(
-        """no response from Ableton.
-you need to copy client.py into Remote Scripts,
-and enable it as a control surface in preferences"""
+        "No response from Ableton. You need to copy client.py into Remote Scripts, "
+        "and enable it as a control surface in preferences."
     )
 
 
 class Clip:
     def get_name(x, y):
+        """Get the name of the clip at the given position.
+
+        Args:
+            x (int): The x-coordinate of the clip.
+            y (int): The y-coordinate of the clip.
+
+        Returns:
+            str: The name of the clip.
+        """
         x, y, name = client.query("/live/clip/get/name", (x, y))
         return name
 
     def get_curr_name():
+        """Get the name of the currently selected clip.
+
+        Returns:
+            tuple: The x-coordinate, y-coordinate, and name of the clip.
+        """
         try:
             x, y = client.query("/live/view/get/selected_clip")
         except RuntimeError:
@@ -64,15 +77,44 @@ class Clip:
             return None, None, None
 
     def set_name(x, y, name):
+        """Set the name of the clip at the given position.
+
+        Args:
+            x (int): The x-coordinate of the clip.
+            y (int): The y-coordinate of the clip.
+            name (str): The new name of the clip.
+        """
         client.send_message("/live/clip/set/name", (x, y, name))
 
     def create(x, y, length):
+        """Create a new clip at the given position with the given length.
+
+        Args:
+            x (int): The x-coordinate of the clip.
+            y (int): The y-coordinate of the clip.
+            length (int): The length of the clip.
+        """
         client.send_message("/live/clip_slot/create_clip", (x, y, length))
 
     def remove_notes(x, y):
+        """Remove all notes from the clip at the given position.
+
+        Args:
+            x (int): The x-coordinate of the clip.
+            y (int): The y-coordinate of the clip.
+        """
         client.send_message("/live/clip/remove/notes", (x, y, 0, 127, 0, 100000))
 
     def get_notes(x, y):
+        """Get all notes from the clip at the given position.
+
+        Args:
+            x (int): The x-coordinate of the clip.
+            y (int): The y-coordinate of the clip.
+
+        Returns:
+            list: The notes in the clip.
+        """
         try:
             notes = client.query("/live/clip/get/notes", (x, y, 0, 127, 0, 100000))[2:]
             print("notes:", notes)
@@ -82,10 +124,26 @@ class Clip:
             return None
 
     def set_loop_points(x, y, start, end):
+        """Set the loop points of the clip at the given position.
+
+        Args:
+            x (int): The x-coordinate of the clip.
+            y (int): The y-coordinate of the clip.
+            start (int): The start point of the loop.
+            end (int): The end point of the loop.
+        """
         client.send_message("/live/clip/set/loop_start", (x, y, start))
         client.send_message("/live/clip/set/loop_end", (x, y, end))
 
     def insert_clip(x, y, midifilename, prompt):
+        """Insert a clip at the given position.
+
+        Args:
+            x (int): The x-coordinate of the clip.
+            y (int): The y-coordinate of the clip.
+            midifilename (str): The filename of the MIDI file to insert.
+            prompt (str): The prompt to use when inserting the clip.
+        """
         try:
             class_name = client.query("/live/device/get/class_name", (x, 0))[2]
         except Exception:
@@ -100,7 +158,7 @@ class Clip:
         for note, velocity, start, duration in full_notes:
             client.send_message(
                 "/live/clip/add/notes",
-                (x, y, note, start, duration, velocity, 0)
+                (x, y, note, start, duration, velocity, 0),
                 # last param is 'mute'
             )
         Clip.set_loop_points(x, y, 0, length)
@@ -122,6 +180,14 @@ class Clip:
                     traceback.print_exc()
 
     def get_output_channel(x):
+        """Get the output channel of the track at the given position.
+
+        Args:
+            x (int): The x-coordinate of the track.
+
+        Returns:
+            int: The output channel of the track.
+        """
         try:
             chan = client.query("/live/track/get/output_routing_channel", (x,))[1]
             print(chan)
@@ -132,6 +198,13 @@ class Clip:
             return None
 
     def set_instrument(x, y, instrument):
+        """Set the instrument of the clip at the given position.
+
+        Args:
+            x (int): The x-coordinate of the clip.
+            y (int): The y-coordinate of the clip.
+            instrument (str): The instrument to set.
+        """
         try:
             print("setting instrument to", instrument)
             filename = operator_map[instrument]
@@ -147,6 +220,14 @@ class Clip:
             traceback.print_exc()
 
     def is_midi_track(x):
+        """Check if the track at the given position is a MIDI track.
+
+        Args:
+            x (int): The x-coordinate of the track.
+
+        Returns:
+            bool: True if the track is a MIDI track, False otherwise.
+        """
         try:
             return client.query("/live/track/get/has_midi_input", (x,))[1]
         except:
@@ -160,6 +241,13 @@ SPINNER_GRID = defaultdict(lambda: itertools.cycle(["-", "/", "|", "\\"]))
 
 class Gen:
     def add_prompt(x, y, prompt):
+        """Add a prompt to the wait list.
+
+        Args:
+            x (int): The x-coordinate of the clip.
+            y (int): The y-coordinate of the clip.
+            prompt (str): The prompt to add.
+        """
         filename = Gen.get_filename(x, y)
         if os.path.exists(filename + ".midi"):
             os.remove(filename + ".midi")
@@ -167,23 +255,53 @@ class Gen:
         WAIT_LIST[(x, y)] = prompt
 
     def wait_list():
+        """Get the wait list.
+
+        Returns:
+            list: The wait list.
+        """
         files = []
         for (x, y), prompt in WAIT_LIST.items():
             files.append((x, y, Gen.get_filename(x, y)))
         return files
 
     def finished(x, y):
+        """Remove a prompt from the wait list.
+
+        Args:
+            x (int): The x-coordinate of the clip.
+            y (int): The y-coordinate of the clip.
+
+        Returns:
+            str: The removed prompt.
+        """
         prompt = WAIT_LIST[(x, y)]
         del WAIT_LIST[(x, y)]
         return prompt
 
     def get_filename(x, y):
+        """Get the filename of the clip at the given position.
+
+        Args:
+            x (int): The x-coordinate of the clip.
+            y (int): The y-coordinate of the clip.
+
+        Returns:
+            str: The filename of the clip.
+        """
         gen_dir = os.path.join(os.path.dirname(__file__), "gens")
         return os.path.join(gen_dir, f"{x}-{y}")
 
 
 # async generate MIDI using GPT
 def start_thread_prompt(x, y, prompt):
+    """Start a new thread to generate a MIDI file from a prompt.
+
+    Args:
+        x (int): The x-coordinate of the clip.
+        y (int): The y-coordinate of the clip.
+        prompt (str): The prompt to generate the MIDI file from.
+    """
     the_thread = threading.Thread(
         target=make_midi, args=(prompt, Gen.get_filename(x, y))
     )
@@ -191,6 +309,14 @@ def start_thread_prompt(x, y, prompt):
 
 
 def start_thread_modify(x, y, prompt, existing_abc):
+    """Start a new thread to modify a MIDI file from a prompt.
+
+    Args:
+        x (int): The x-coordinate of the clip.
+        y (int): The y-coordinate of the clip.
+        prompt (str): The prompt to modify the MIDI file from.
+        existing_abc (str): The existing ABC notation of the MIDI file.
+    """
     the_thread = threading.Thread(
         target=modify_midi, args=(prompt, existing_abc, Gen.get_filename(x, y))
     )
@@ -198,11 +324,23 @@ def start_thread_modify(x, y, prompt, existing_abc):
 
 
 def extract_abc_title(abc):
+    """Extract the title from ABC notation.
+
+    Args:
+        abc (str): The ABC notation to extract the title from.
+
+    Returns:
+        str: The title of the ABC notation.
+    """
     title = re.search(r"^T:(.*)$", abc, re.MULTILINE).group(1)
     return title
 
 
 def event_loop():
+    """Run the event loop.
+
+    This function checks the wait list for finished tasks and handles them.
+    """
     files = Gen.wait_list()
     for x, y, filename in files:
         if os.path.exists(filename + ".midi"):
