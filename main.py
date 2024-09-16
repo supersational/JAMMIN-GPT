@@ -1,7 +1,13 @@
 # Standard library imports
 import json
 import os
-import logging
+import pickle
+import re
+import threading
+import time
+import traceback
+import itertools
+from collections import defaultdict
 
 # Third-party imports
 from mido import MidiFile
@@ -28,20 +34,14 @@ with open(MIDI_MAP_PATH, "r") as f:
 # Initialize Ableton OSC client
 client = AbletonOSCClient(IP, PORT)
 
-# Use logging instead of print for error messages
-logger = logging.getLogger(__name__)
-
 try:
     assert client.query("/live/test")[0] == "ok"
 except:
-    logger.error(
+    print(
         "No response from Ableton. You need to copy client.py into Remote Scripts, "
         "and enable it as a control surface in preferences."
     )
 
-# Configure logging at the entry point
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
 
 class Clip:
     def get_name(x, y):
@@ -158,7 +158,7 @@ class Clip:
         for note, velocity, start, duration in full_notes:
             client.send_message(
                 "/live/clip/add/notes",
-                (x, y, note, start, duration, velocity, 0)
+                (x, y, note, start, duration, velocity, 0),
                 # last param is 'mute'
             )
         Clip.set_loop_points(x, y, 0, length)
