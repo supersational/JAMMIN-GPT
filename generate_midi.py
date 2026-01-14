@@ -5,9 +5,9 @@ from copy import deepcopy
 from chatlib import get_completion
 from mido import MidiFile
 
-MODEL_NUM = 5.5
 SYSTEM = """You generate music in ABC notation, respond with notation between ```abc blocks and no other text.
 Set MIDI-instrument using: %%MIDI program {GM number} (after the V: block) for drums set %%MIDI channel 10"""
+MODEL_NAME = "gpt-5-mini"
 
 
 def parse_file(filename):
@@ -43,7 +43,7 @@ def make_midi(prompt, filename, DEBUG=False):
         print(">>>>> getting response")
         prompt = f"""Write ABC notation for "{prompt}"""
         response = get_completion(
-            prompt, system=SYSTEM, model_num=MODEL_NUM, frequency_penalty=0.3
+            prompt, system=SYSTEM, model_name=MODEL_NAME, frequency_penalty=0.3
         )
         print(">>>>> raw response")
         print(response)
@@ -65,7 +65,7 @@ def modify_midi(prompt, existing_abc, filename, DEBUG=False):
 Here is the previous ABC notation:
 ```abc\n{existing_abc}\n```\n"""
         response = get_completion(
-            message, system=SYSTEM, frequency_penalty=0.6, model_num=MODEL_NUM
+            message, system=SYSTEM, frequency_penalty=0.6, model_name=MODEL_NAME
         )
         print(">>>>> raw response")
         print(response)

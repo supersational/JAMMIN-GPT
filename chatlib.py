@@ -76,22 +76,19 @@ MESSAGES = [
 
 
 def get_completion(
-    prompt,
-    model_num=4,
-    system=None,
-    frequency_penalty=0.0,
-    presence_penalty=0.0,
+    prompt: str,
+    model_name: str = "gpt-5-mini",
+    system: str | None = None,
+    frequency_penalty: float = 0.0,
+    presence_penalty: float = 0.0,
 ):
-    if model_num == 3:
-        model = "gpt-4o-mini" # effectively the new gpt-3.5
-    elif model_num == 4:
-        model = "gpt-4o"
-    elif model_num == 5:
-        model = "gpt-5"
-    elif model_num == 5.5:
-        model = "gpt-5-mini"
-    else:
-        raise Exception("Invalid model_num")
+    """Obtain a chat completion.
+
+    model_name: explicit OpenAI model string (e.g. "gpt-5-mini", "gpt-4o").
+    If the model name contains the substring "gpt-5" we omit adjustable
+    temperature / penalties because those endpoints currently fix temperature.
+    """
+    model = model_name
     print("using model", model)
     if system is None:
         messages = [x for x in MESSAGES]
@@ -102,8 +99,8 @@ def get_completion(
         ]
 
     client = OpenAI()
-    if model_num > 4:
-          # gpt-5 only supports temp=1
+    if "gpt-5" in model_name:
+        # gpt-5 family: simplified params (temp fixed server-side)
         completion = client.chat.completions.create(
             model=model,
             messages=messages
