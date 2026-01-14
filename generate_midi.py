@@ -31,6 +31,11 @@ def extract_message(message):
 
     return message
 
+def ensure_x_field(abc_content):
+    if not re.search(r"^X:", abc_content, re.MULTILINE):
+        return "X:1\n" + abc_content
+    return abc_content
+
 
 def make_midi(prompt, filename, DEBUG=False):
     print("START MAKE MIDI", prompt, filename)
@@ -70,6 +75,7 @@ Here is the previous ABC notation:
     # with open(f"{filename}.abc", "r") as f:
     #     message = f.read()
     message = extract_message(message)
+    message = ensure_x_field(message)
     print(message)
     with open(f"{filename}.abc", "w") as f:
         f.write(message)
