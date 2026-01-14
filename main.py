@@ -14,6 +14,7 @@ from mido import MidiFile
 
 # Local application/library specific imports
 import fluidsynth_lib
+import mtxt
 from client import AbletonOSCClient
 from generate_midi import make_midi, modify_midi, midifile_to_notes
 
@@ -44,6 +45,7 @@ except:
 
 
 class Clip:
+    @staticmethod
     def get_name(x, y):
         """Get the name of the clip at the given position.
 
@@ -57,6 +59,7 @@ class Clip:
         x, y, name = client.query("/live/clip/get/name", (x, y))
         return name
 
+    @staticmethod
     def get_curr_name():
         """Get the name of the currently selected clip.
 
@@ -76,6 +79,7 @@ class Clip:
             # print('get_curr_name: no name for selected clip')
             return None, None, None
 
+    @staticmethod
     def set_name(x, y, name):
         """Set the name of the clip at the given position.
 
@@ -86,6 +90,7 @@ class Clip:
         """
         client.send_message("/live/clip/set/name", (x, y, name))
 
+    @staticmethod
     def create(x, y, length):
         """Create a new clip at the given position with the given length.
 
@@ -96,6 +101,7 @@ class Clip:
         """
         client.send_message("/live/clip_slot/create_clip", (x, y, length))
 
+    @staticmethod
     def remove_notes(x, y):
         """Remove all notes from the clip at the given position.
 
@@ -105,6 +111,7 @@ class Clip:
         """
         client.send_message("/live/clip/remove/notes", (x, y, 0, 127, 0, 100000))
 
+    @staticmethod
     def get_notes(x, y):
         """Get all notes from the clip at the given position.
 
@@ -123,6 +130,7 @@ class Clip:
             print("failed to get notes", e)
             return None
 
+    @staticmethod
     def set_loop_points(x, y, start, end):
         """Set the loop points of the clip at the given position.
 
@@ -135,6 +143,7 @@ class Clip:
         client.send_message("/live/clip/set/loop_start", (x, y, start))
         client.send_message("/live/clip/set/loop_end", (x, y, end))
 
+    @staticmethod
     def insert_clip(x, y, midifilename, prompt):
         """Insert a clip at the given position.
 
@@ -179,6 +188,7 @@ class Clip:
                     print("failed to set instrument name", e)
                     traceback.print_exc()
 
+    @staticmethod
     def get_output_channel(x):
         """Get the output channel of the track at the given position.
 
@@ -197,6 +207,7 @@ class Clip:
             print("Failed to set GM-MIDI instrument. Couldn't get output channel:", e)
             return None
 
+    @staticmethod
     def set_instrument(x, y, instrument):
         """Set the instrument of the clip at the given position.
 
@@ -219,6 +230,7 @@ class Clip:
 
             traceback.print_exc()
 
+    @staticmethod
     def is_midi_track(x):
         """Check if the track at the given position is a MIDI track.
 
@@ -239,58 +251,112 @@ WAIT_LIST = {}
 SPINNER_GRID = defaultdict(lambda: itertools.cycle(["-", "/", "|", "\\"]))
 
 
-class Gen:
-    def add_prompt(x, y, prompt):
-        """Add a prompt to the wait list.
+def get_filename(x, y):
+    """Get the filename of the clip at the given position.
 
-        Args:
-            x (int): The x-coordinate of the clip.
-            y (int): The y-coordinate of the clip.
-            prompt (str): The prompt to add.
-        """
-        filename = Gen.get_filename(x, y)
-        if os.path.exists(filename + ".midi"):
-            os.remove(filename + ".midi")
+    Args:
+        x (int): The x-coordinate of the clip.
+        y (int): The y-coordinate of the clip.
 
-        WAIT_LIST[(x, y)] = prompt
+    Returns:
+        str: The filename of the clip.
+    """
+    gen_dir = os.path.join(os.path.dirname(__file__), "gens")
+    return os.path.join(gen_dir, f"{x}-{y}")
 
-    def wait_list():
-        """Get the wait list.
 
-        Returns:
-            list: The wait list.
-        """
-        files = []
-        for (x, y), prompt in WAIT_LIST.items():
-            files.append((x, y, Gen.get_filename(x, y)))
-        return files
+def get_wait_list():
+    """Get the wait list.
 
-    def finished(x, y):
-        """Remove a prompt from the wait list.
+    Returns:
+        list: The wait list.
+    """
+    files = []
+    for (x, y), prompt in WAIT_LIST.items():
+        files.append((x, y, get_filename(x, y)))
+    return files
 
-        Args:
-            x (int): The x-coordinate of the clip.
-            y (int): The y-coordinate of the clip.
 
-        Returns:
-            str: The removed prompt.
-        """
-        prompt = WAIT_LIST[(x, y)]
-        del WAIT_LIST[(x, y)]
-        return prompt
+def add_to_wait_list(x, y, prompt):
+    """Add a prompt to the wait list.
 
-    def get_filename(x, y):
-        """Get the filename of the clip at the given position.
+    Args:
+        x (int): The x-coordinate of the clip.
+        y (int): The y-coordinate of the clip.
+        prompt (str): The prompt to add.
+    """
+    filename = get_filename(x, y)
+    if os.path.exists(filename + ".midi"):
+        os.remove(filename + ".midi")
 
-        Args:
-            x (int): The x-coordinate of the clip.
-            y (int): The y-coordinate of the clip.
+    WAIT_LIST[(x, y)] = prompt
 
-        Returns:
-            str: The filename of the clip.
-        """
-        gen_dir = os.path.join(os.path.dirname(__file__), "gens")
-        return os.path.join(gen_dir, f"{x}-{y}")
+
+def remove_from_wait_list(x, y):
+    """Remove a prompt from the wait list.
+
+    Args:
+        x (int): The x-coordinate of the clip.
+        y (int): The y-coordinate of the clip.
+
+    Returns:
+        str: The removed prompt.
+    """
+    prompt = WAIT_LIST[(x, y)]
+    del WAIT_LIST[(x, y)]
+    return prompt
+
+
+from mido import MidiFile, MidiTrack, Message
+
+def create_midi_temp_from_notes(notes, filename):
+    """Create a temporary MIDI file from a list of Ableton notes.
+    
+    Notes format from Ableton OSC is a flat list of 5-tuples repeated:
+    [mute, pitch, time, duration, velocity, ...]
+    """
+    mid = MidiFile()
+    track = MidiTrack()
+    mid.tracks.append(track)
+    
+    # Parse flattened list into note objects
+    # Ableton time is in beats. Standard MIDI file ticks_per_beat is usually 480.
+    ticks_per_beat = 480
+    mid.ticks_per_beat = ticks_per_beat
+    
+    events = []
+    
+    # 5 items per note
+    chunk_size = 5
+    for i in range(0, len(notes), chunk_size):
+        chunk = notes[i:i+chunk_size]
+        if len(chunk) < 5: break
+        
+        # muted = chunk[0] # check if true/false
+        pitch = chunk[1]
+        start_time = chunk[2]
+        duration = chunk[3]
+        velocity = chunk[4]
+        
+        # Note on
+        start_ticks = int(start_time * ticks_per_beat)
+        events.append({'type': 'note_on', 'note': int(pitch), 'velocity': int(velocity), 'time': start_ticks})
+        
+        # Note off
+        end_ticks = int((start_time + duration) * ticks_per_beat)
+        events.append({'type': 'note_off', 'note': int(pitch), 'velocity': 0, 'time': end_ticks})
+        
+    # Sort events by time
+    events.sort(key=lambda x: x['time'])
+    
+    # Convert absolute time to delta time
+    last_time = 0
+    for event in events:
+        delta = event['time'] - last_time
+        track.append(Message(event['type'], note=event['note'], velocity=event['velocity'], time=delta))
+        last_time = event['time']
+        
+    mid.save(filename)
 
 
 # async generate MIDI using GPT
@@ -303,37 +369,24 @@ def start_thread_prompt(x, y, prompt):
         prompt (str): The prompt to generate the MIDI file from.
     """
     the_thread = threading.Thread(
-        target=make_midi, args=(prompt, Gen.get_filename(x, y))
+        target=make_midi, args=(prompt, get_filename(x, y))
     )
     the_thread.start()
 
 
-def start_thread_modify(x, y, prompt, existing_abc):
+def start_thread_modify(x, y, prompt, existing_mtxt):
     """Start a new thread to modify a MIDI file from a prompt.
 
     Args:
         x (int): The x-coordinate of the clip.
         y (int): The y-coordinate of the clip.
         prompt (str): The prompt to modify the MIDI file from.
-        existing_abc (str): The existing ABC notation of the MIDI file.
+        existing_mtxt (str): The existing mtxt notation of the MIDI file.
     """
     the_thread = threading.Thread(
-        target=modify_midi, args=(prompt, existing_abc, Gen.get_filename(x, y))
+        target=modify_midi, args=(prompt, existing_mtxt, get_filename(x, y))
     )
     the_thread.start()
-
-
-def extract_abc_title(abc):
-    """Extract the title from ABC notation.
-
-    Args:
-        abc (str): The ABC notation to extract the title from.
-
-    Returns:
-        str: The title of the ABC notation.
-    """
-    title = re.search(r"^T:(.*)$", abc, re.MULTILINE).group(1)
-    return title
 
 
 def event_loop():
@@ -341,14 +394,12 @@ def event_loop():
 
     This function checks the wait list for finished tasks and handles them.
     """
-    files = Gen.wait_list()
+    files = get_wait_list()
     for x, y, filename in files:
         if os.path.exists(filename + ".midi"):
-            prompt = Gen.finished(x, y)
+            prompt = remove_from_wait_list(x, y)
             print("finished generating", filename)
             print("inserting clip name =", prompt)
-            with open(filename + ".abc", "r") as f:
-                f.read()
 
             Clip.insert_clip(x, y, filename + ".midi", prompt)
         else:
@@ -369,24 +420,39 @@ def event_loop():
     else:
         print(f'AI needed clip found: "{name}"')
         prompt = name
-        if os.path.exists(Gen.get_filename(x, y) + ".abc"):
-            # ADD CHECK FOR THERE's MIDI NOTES IN CURR CLIP
+        
+        # Check if there are notes in the current clip
+        try:
+            current_notes = Clip.get_notes(x, y)
+            has_notes = len(current_notes) > 0
+        except Exception as e:
+            print("error getting notes:", e)
+            has_notes = False
+            current_notes = []
+
+        if has_notes:
+            print("modifying existing notes for", get_filename(x, y))
+            add_to_wait_list(x, y, prompt)
+            
+            # Convert current notes to a temp midi file locally
+            temp_midi_filename = get_filename(x, y) + "_temp.midi"
+            create_midi_temp_from_notes(current_notes, temp_midi_filename)
+            
+            # Read back as MTXT
             try:
-                notes = len(Clip.get_notes(x, y)) > 0
+                existing_mtxt = str(mtxt.MtxtFile.from_midi(temp_midi_filename))
+                # Cleanup temp file
+                if os.path.exists(temp_midi_filename):
+                    os.remove(temp_midi_filename)
+                    
+                start_thread_modify(x, y, prompt, existing_mtxt)
             except Exception as e:
-                print("error getting notes:", e)
-                notes = False
-            if notes:
-                print("already generated", Gen.get_filename(x, y))
-                Gen.add_prompt(x, y, prompt)
-                with open(Gen.get_filename(x, y) + ".abc", "r") as f:
-                    existing_abc = f.read()
-                start_thread_modify(x, y, prompt, existing_abc)
-            else:
-                Gen.add_prompt(x, y, prompt)
-                start_thread_prompt(x, y, prompt)
+                print(f"Failed to convert temp MIDI to MTXT: {e}")
+                traceback.print_exc()
+
         else:
-            Gen.add_prompt(x, y, prompt)
+            print(f"generating new notes for {get_filename(x, y)}")
+            add_to_wait_list(x, y, prompt)
             start_thread_prompt(x, y, prompt)
 
 

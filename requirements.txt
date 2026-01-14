@@ -1,0 +1,5 @@
+openai>=1.1.1 
+python-rtmidi
+mido>=1.3.0
+python-osc>=1.8.1
+mtxt>=0.8.1

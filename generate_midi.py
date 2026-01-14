@@ -5,45 +5,36 @@ from copy import deepcopy
 from chatlib import get_completion
 from mido import MidiFile
 
-SYSTEM = """You generate music in ABC notation, respond with notation between ```abc blocks and no other text.
-Set MIDI-instrument using: %%MIDI program {GM number} (after the V: block) for drums set %%MIDI channel 10"""
 MODEL_NAME = "gpt-5-mini"
+from prompt import SYSTEM_PROMPT
 
 
-def parse_file(filename):
-    # /opt/homebrew/bin/abc2midi
-    os.system(f"/opt/homebrew/bin/abc2midi {filename}.abc -o {filename}.midi")
-
+import mtxt
+from correct_mtxt import correct_mtxt
 
 def extract_message(message):
-    match = re.search(r"```abc(.*?)```", message, flags=re.DOTALL | re.M)
+    match = re.search(r"```mtxt(.*?)```", message, flags=re.DOTALL | re.M)
     print(match)
     if match:
         message = match.group(1)
     else:
         print("no match so using whole string")
     message = "\n".join([x for x in message.split("\n") if x.strip() != ""])
-
-    pattern = r'"([^"]*)"'  # Match anything inside double quotes
-    message = re.sub(
-        pattern, lambda x: '"' + re.sub(r",+", "", x.group(1)) + '"', message
-    )
-
+    
+    # Apply auto-corrections to fix common LLM mistakes
+    message = correct_mtxt(message)
+    
     return message
 
-def ensure_x_field(abc_content):
-    if not re.search(r"^X:", abc_content, re.MULTILINE):
-        return "X:1\n" + abc_content
-    return abc_content
 
 
 def make_midi(prompt, filename, DEBUG=False):
     print("START MAKE MIDI", prompt, filename)
     if not DEBUG:
         print(">>>>> getting response")
-        prompt = f"""Write ABC notation for "{prompt}"""
+        prompt = f"""Write mtxt notation for "{prompt}"""
         response = get_completion(
-            prompt, system=SYSTEM, model_name=MODEL_NAME, frequency_penalty=0.3
+            prompt, system=SYSTEM_PROMPT, model_name=MODEL_NAME, frequency_penalty=0.3
         )
         print(">>>>> raw response")
         print(response)
@@ -52,34 +43,31 @@ def make_midi(prompt, filename, DEBUG=False):
 
     message = extract_message(message)
     print(message)
-    with open(f"{filename}.abc", "w") as f:
-        f.write(message)
-    parse_file(filename)
+    try:
+        mtxt.parse(message).to_midi(f"{filename}.midi")
+    except Exception as e:
+        print(f"Failed to parse MTXT: {e}")
 
 
-def modify_midi(prompt, existing_abc, filename, DEBUG=False):
+def modify_midi(prompt, existing_mtxt, filename, DEBUG=False):
     print("START modify MIDI", prompt, filename)
     if not DEBUG:
         print(">>>>> getting response")
-        message = f"""```Modify the title AND CHANGE THE NOTES to make a new abc with this instruction: "{prompt}"
-Here is the previous ABC notation:
-```abc\n{existing_abc}\n```\n"""
+        message = f"""```Modify the title AND CHANGE THE NOTES to make a new mtxt with this instruction: "{prompt}"
+Here is the previous mtxt notation:
+```mtxt\n{existing_mtxt}\n```\n"""
         response = get_completion(
-            message, system=SYSTEM, frequency_penalty=0.6, model_name=MODEL_NAME
+            message, system=SYSTEM_PROMPT, frequency_penalty=0.6, model_name=MODEL_NAME
         )
         print(">>>>> raw response")
         print(response)
         message = response.choices[0].message.content
-    #     with open(f"{filename}.abc", "w") as f:
-    #         f.write(message)
-    # with open(f"{filename}.abc", "r") as f:
-    #     message = f.read()
     message = extract_message(message)
-    message = ensure_x_field(message)
     print(message)
-    with open(f"{filename}.abc", "w") as f:
-        f.write(message)
-    parse_file(filename)
+    try:
+        mtxt.parse(message).to_midi(f"{filename}.midi")
+    except Exception as e:
+        print(f"Failed to parse MTXT: {e}")
 
 
 def midifile_to_notes(midifile):

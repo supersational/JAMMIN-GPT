@@ -1,16 +1,15 @@
 # JAMMIN-GPT
 [**Paper**](https://arxiv.org/pdf/2312.03479.pdf) | [**ISMIR Poster**](https://ismir2023program.ismir.net/lbd_356.html) 
 
+**Updates**
+- 2026-01-14: Updated to use [mtxt](https://github.com/Daninet/mtxt) instead of ABC notation - this is a new syntax designed for LLMs to write music more effectively, and allows editing existing MIDI clips (since it supports MIDI -> mtxt -> MIDI conversion)
+
 ![ISMIR Title page](screenshots/title.png)
 
 ![Diagram of operation](screenshots/diagram.png)
 
 ### Requirements
-- abc2midi - https://abcmidi.sourceforge.io/
-    - `brew install abc2midi`
-    - if not installed using homebrew set path here: 
-https://github.com/supersational/JAMMIN-GPT/blob/main/generate_midi.py#L15
-- pip install openai>=1.1.1 rtmidi mido==1.3.0
+- pip install -r requirements.txt
 - place 'client' folder in Ableton's Remote Scripts folder
 (for me it's in `/Users/sven/Music/Ableton/User Library/Remote Scripts/AbletonOSC/client/`)
 
@@ -36,7 +35,7 @@ python main.py
 
 - You should see the output: `waiting for named MIDI clip to appear..`
 - Now create an empty MIDI clip in Ableton and rename it something like: "piano arp"
-  - Create MIDI clip shortcut: `cmd+shift+m`
+  - Create MIDI clip shortcut: `cmd+shift+m` or `cmd+shift+t` (Live 12)
   - Rename MIDI clip shortcut: `cmd+r`
 - If the script works correctly the clip's name should change
 - The MIDI clip should now contain LLM-generated music, make some more!
