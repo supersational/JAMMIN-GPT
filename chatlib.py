@@ -3,12 +3,45 @@ from openai import OpenAI
 
 # https://platform.openai.com/docs/models
 # https://openai.com/pricing
-# codex models are discontinued
-
 COST_PER_TOKEN = {
+    # --- GPT-5 Family (Flagship) ---
+    "gpt-5.2": {
+        "prompt_tokens": 1.75 / 1_000_000,
+        "completion_tokens": 14.00 / 1_000_000,
+    },
+    "gpt-5.1": {
+        "prompt_tokens": 1.25 / 1_000_000,
+        "completion_tokens": 10.00 / 1_000_000,
+    },
+    "gpt-5": {
+        "prompt_tokens": 1.25 / 1_000_000,
+        "completion_tokens": 10.00 / 1_000_000,
+    },
+    "gpt-5-mini": {
+        "prompt_tokens": 0.25 / 1_000_000,
+        "completion_tokens": 2.00 / 1_000_000,
+    },
+    "gpt-5-nano": {
+        "prompt_tokens": 0.05 / 1_000_000,
+        "completion_tokens": 0.40 / 1_000_000,
+    },
+    # --- GPT-4.1 Family ---
+    "gpt-4.1": {
+        "prompt_tokens": 2.00 / 1_000_000,
+        "completion_tokens": 8.00 / 1_000_000,
+    },
+    "gpt-4.1-mini": {
+        "prompt_tokens": 0.40 / 1_000_000,
+        "completion_tokens": 1.60 / 1_000_000,
+    },
+    "gpt-4.1-nano": {
+        "prompt_tokens": 0.10 / 1_000_000,
+        "completion_tokens": 0.40 / 1_000_000,
+    },
+    # --- GPT-4o Family  ---
     "gpt-4o": {
-        "prompt_tokens": 5.00 / 1_000_000,
-        "completion_tokens": 15.00 / 1_000_000,
+        "prompt_tokens": 2.50 / 1_000_000,
+        "completion_tokens": 10.00 / 1_000_000,
     },
     "gpt-4o-2024-05-13": {
         "prompt_tokens": 5.00 / 1_000_000,
@@ -18,71 +51,6 @@ COST_PER_TOKEN = {
         "prompt_tokens": 0.15 / 1_000_000,
         "completion_tokens": 0.60 / 1_000_000,
     },
-    "gpt-4o-mini-2024-07-18": {
-        "prompt_tokens": 0.15 / 1_000_000,
-        "completion_tokens": 0.60 / 1_000_000,
-    },
-    "gpt-3.5-turbo-0125": {
-        "prompt_tokens": 0.50 / 1_000_000,
-        "completion_tokens": 1.50 / 1_000_000,
-    },
-    "gpt-3.5-turbo-instruct": {
-        "prompt_tokens": 1.50 / 1_000_000,
-        "completion_tokens": 2.00 / 1_000_000,
-    },
-    "text-embedding-3-small": {"total_tokens": 0.02 / 1_000_000},
-    "text-embedding-3-large": {"total_tokens": 0.13 / 1_000_000},
-    "ada-v2": {"total_tokens": 0.10 / 1_000_000},
-    "gpt-3.5-turbo": {
-        "prompt_tokens": 3.00 / 1_000_000,
-        "completion_tokens": 6.00 / 1_000_000,
-        "training_tokens": 8.00 / 1_000_000,
-    },
-    "davinci-002": {
-        "prompt_tokens": 12.00 / 1_000_000,
-        "completion_tokens": 12.00 / 1_000_000,
-        "training_tokens": 6.00 / 1_000_000,
-    },
-    "babbage-002": {
-        "prompt_tokens": 1.60 / 1_000_000,
-        "completion_tokens": 1.60 / 1_000_000,
-        "training_tokens": 0.40 / 1_000_000,
-    },
-    "gpt-4-turbo": {
-        "prompt_tokens": 10.00 / 1_000_000,
-        "completion_tokens": 30.00 / 1_000_000,
-    },
-    "gpt-4-0125-preview": {
-        "prompt_tokens": 10.00 / 1_000_000,
-        "completion_tokens": 30.00 / 1_000_000,
-    },
-    "gpt-4-1106-preview": {
-        "prompt_tokens": 10.00 / 1_000_000,
-        "completion_tokens": 30.00 / 1_000_000,
-    },
-    "gpt-4-vision-preview": {
-        "prompt_tokens": 10.00 / 1_000_000,
-        "completion_tokens": 30.00 / 1_000_000,
-    },
-    "gpt-3.5-turbo-1106": {
-        "prompt_tokens": 1.00 / 1_000_000,
-        "completion_tokens": 2.00 / 1_000_000,
-    },
-    "gpt-3.5-turbo-0613": {
-        "prompt_tokens": 1.50 / 1_000_000,
-        "completion_tokens": 2.00 / 1_000_000,
-    },
-    "gpt-3.5-turbo-16k-0613": {
-        "prompt_tokens": 3.00 / 1_000_000,
-        "completion_tokens": 4.00 / 1_000_000,
-    },
-    "gpt-3.5-turbo-0301": {
-        "prompt_tokens": 1.50 / 1_000_000,
-        "completion_tokens": 2.00 / 1_000_000,
-    },
-    # "text-davinci-003": {"total_tokens": 20 / 1_000_000},
-    # "text-davinci-002": {"total_tokens": 20 / 1_000_000},
-    # "code-davinci-002": {"total_tokens": 30 / 1_000_000},
 }
 
 
